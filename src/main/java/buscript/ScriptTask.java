@@ -11,10 +11,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+@SuppressWarnings("unchecked")
 class ScriptTask implements Runnable {
 
-    private Buscript buscript;
-    private Plugin plugin;
+    private final Buscript buscript;
+    private final Plugin plugin;
     private int id = -1;
 
     ScriptTask(Buscript buscript) {
@@ -26,8 +27,17 @@ class ScriptTask implements Runnable {
         id = plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, this, 20L, 20L);
     }
 
-    void kill() {
+    private void kill() {
         plugin.getServer().getScheduler().cancelTask(id);
+    }
+
+    private void checkCast(@SuppressWarnings({"ParameterCanBeLocal", "UnusedParameters"}) boolean removed, Iterator scriptsIt, Map script, File scriptFile) {
+        final List<Map<String, Object>> replacements = (List<Map<String, Object>>) script.get("replacements");
+        final Map<String, Object> metaData = (Map<String, Object>) script.get("metaData");
+        buscript.getPlugin().getServer().getScheduler().scheduleSyncDelayedTask(plugin, () -> buscript.executeDelayedScript(scriptFile, replacements, metaData));
+        scriptsIt.remove();
+        //noinspection UnusedAssignment
+        removed = true;
     }
 
     @Override
@@ -37,9 +47,7 @@ class ScriptTask implements Runnable {
             return;
         }
         long time = System.currentTimeMillis();
-        Iterator<Map.Entry<String, List<Map<String, Object>>>> allScriptsIt = buscript.delayedScripts.entrySet().iterator();
-        while (allScriptsIt.hasNext()) {
-            final Map.Entry<String, List<Map<String, Object>>> entry = allScriptsIt.next();
+        for (Map.Entry<String, List<Map<String, Object>>> entry : buscript.delayedScripts.entrySet()) {
             boolean removed = false;
             Iterator<Map<String, Object>> scriptsIt = entry.getValue().iterator();
             while (scriptsIt.hasNext()) {
@@ -51,39 +59,19 @@ class ScriptTask implements Runnable {
                             if (script.get("file") != null) {
                                 final File scriptFile = new File(script.get("file").toString());
                                 if (scriptFile.exists()) {
-                                    try {
-                                        final List<Map<String, Object>> replacements = (List<Map<String, Object>>) script.get("replacements");
-                                        final Map<String, Object> metaData = (Map<String, Object>) script.get("metaData");
-                                        buscript.getPlugin().getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                buscript.executeDelayedScript(scriptFile, replacements, metaData);
-                                            }
-                                        });
-                                        scriptsIt.remove();
-                                        removed = true;
-                                    } catch (ClassCastException e) {
+                                    try { checkCast(removed, scriptsIt, script, scriptFile); } catch (ClassCastException e) {
                                         plugin.getLogger().warning("Invalid delayed script entry");
                                         scriptsIt.remove();
                                         removed = true;
                                     }
                                 } else {
                                     try {
+                                        //noinspection ResultOfMethodCallIgnored
                                         scriptFile.createNewFile();
-                                    } catch (IOException ignore) { }
+                                    } catch (IOException ignore) {
+                                    }
                                     if (scriptFile.exists()) {
-                                        try {
-                                            final List<Map<String, Object>> replacements = (List<Map<String, Object>>) script.get("replacements");
-                                            final Map<String, Object> metaData = (Map<String, Object>) script.get("metaData");
-                                            buscript.getPlugin().getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() {
-                                                @Override
-                                                public void run() {
-                                                    buscript.executeDelayedScript(scriptFile, replacements, metaData);
-                                                }
-                                            });
-                                            scriptsIt.remove();
-                                            removed = true;
-                                        } catch (ClassCastException e) {
+                                        try { checkCast(removed, scriptsIt, script, scriptFile); } catch (ClassCastException e) {
                                             scriptsIt.remove();
                                             removed = true;
                                             System.out.println("could not cast");

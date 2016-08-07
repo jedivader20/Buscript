@@ -6,11 +6,11 @@ package buscript;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.server.PluginDisableEvent;
-import org.bukkit.event.server.PluginEnableEvent;
 
+@SuppressWarnings("unused")
 public class BuscriptListener implements Listener {
 
-    private Buscript buscript;
+    private final Buscript buscript;
 
     public BuscriptListener(Buscript buscript) {
         this.buscript = buscript;

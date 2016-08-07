@@ -37,12 +37,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+@SuppressWarnings("unused")
 public class Buscript {
 
-    public static final String NULL = "!!NULL";
+    private static final String NULL = "!!NULL";
 
     private String target = null;
-    private Plugin plugin;
+    private final Plugin plugin;
     private Scriptable global;
     private Permission permissions;
     private Economy economy;
@@ -50,20 +51,20 @@ public class Buscript {
     private File scriptFolder;
     private File scriptFile;
     private FileConfiguration scriptConfig;
-    private Map<String, String> scriptCache = new HashMap<String, String>();
+    private final Map<String, String> scriptCache = new HashMap<>();
 
     private List<Map<String, Object>> delayedReplacements = null;
 
-    private final List<StringReplacer> stringReplacers = new ArrayList<StringReplacer>();
+    private final List<StringReplacer> stringReplacers = new ArrayList<>();
 
-    private Map<String, Object> metaData = new HashMap<String, Object>();
+    private Map<String, Object> metaData = new HashMap<>();
 
     boolean runTasks = true;
-    Map<String, List<Map<String, Object>>> delayedScripts = new HashMap<String, List<Map<String, Object>>>();
+    final Map<String, List<Map<String, Object>>> delayedScripts = new HashMap<>();
 
     private static class TargetReplacer implements StringReplacer {
 
-        private Buscript buscript;
+        private final Buscript buscript;
 
         private TargetReplacer(Buscript buscript) {
             this.buscript = buscript;
@@ -105,12 +106,13 @@ public class Buscript {
      * @param plugin The plugin implementing this library.
      * @param pluginScriptName The name of the variable the plugin will be referenced as in scripts.
      */
-    public Buscript(Plugin plugin, String pluginScriptName) {
+    private Buscript(Plugin plugin, @SuppressWarnings("SameParameterValue") String pluginScriptName) {
         this.plugin = plugin;
         registerStringReplacer(new TargetReplacer(this));
         // Create script folder in plugin's directory.
         scriptFolder = new File(plugin.getDataFolder(), "scripts");
         if (!getScriptFolder().exists()) {
+            //noinspection ResultOfMethodCallIgnored
             getScriptFolder().mkdirs();
         }
         // Initialize the context with a global object.
@@ -145,30 +147,32 @@ public class Buscript {
         ConfigurationSection scripts = scriptConfig.getConfigurationSection("scripts");
         if (scripts != null) {
             for (String player : scripts.getKeys(false)) {
-                List<Map<String, Object>> playerScripts = new ArrayList<Map<String, Object>>();
+                List<Map<String, Object>> playerScripts = new ArrayList<>();
                 delayedScripts.put(player, playerScripts);
-                for (Object scriptObj : scripts.getList(player)) {
-                    if (scriptObj instanceof Map) {
-                        Map scriptMap = (Map) scriptObj;
-                        Map<String, Object> script = new HashMap<String, Object>(2);
-                        for (Object keyObj : scriptMap.keySet()) {
-                            if (keyObj.toString().equals("time")) {
-                                try {
-                                    script.put(keyObj.toString(), Long.valueOf(scriptMap.get(keyObj).toString()));
-                                } catch (NumberFormatException e) {
-                                    getPlugin().getLogger().warning("Script data error, time reset");
-                                    script.put(keyObj.toString(), 0);
-                                }
-                            }/* else if (keyObj.toString().equals("replacements")) {
+                /* else if (keyObj.toString().equals("replacements")) {
+                    Object obj = scriptMap.get(keyObj);
+                    System.out.println(obj);
+                }*/
+                scripts.getList(player).stream().filter(scriptObj -> scriptObj instanceof Map).forEach(scriptObj -> {
+                    Map scriptMap = (Map) scriptObj;
+                    Map<String, Object> script = new HashMap<>(2);
+                    for (Object keyObj : scriptMap.keySet()) {
+                        if (keyObj.toString().equals("time")) {
+                            try {
+                                script.put(keyObj.toString(), Long.valueOf(scriptMap.get(keyObj).toString()));
+                            } catch (NumberFormatException e) {
+                                getPlugin().getLogger().warning("Script data error, time reset");
+                                script.put(keyObj.toString(), 0);
+                            }
+                        }/* else if (keyObj.toString().equals("replacements")) {
                                 Object obj = scriptMap.get(keyObj);
                                 System.out.println(obj);
                             }*/ else {
-                                script.put(keyObj.toString(), scriptMap.get(keyObj));
-                            }
+                            script.put(keyObj.toString(), scriptMap.get(keyObj));
                         }
-                        playerScripts.add(script);
                     }
-                }
+                    playerScripts.add(script);
+                });
             }
         }
     }
@@ -271,7 +275,7 @@ public class Buscript {
      *
      * @return The current script target or null.
      */
-    public String getTarget() {
+    private String getTarget() {
         return target;
     }
 
@@ -344,7 +348,7 @@ public class Buscript {
      *
      * @param replacer the new StringReplacer to add.
      */
-    public void registerStringReplacer(StringReplacer replacer) {
+    private void registerStringReplacer(StringReplacer replacer) {
         Iterator<StringReplacer> it = stringReplacers.iterator();
         while (it.hasNext()) {
             StringReplacer r = it.next();
@@ -364,7 +368,7 @@ public class Buscript {
      * @param method the java method to be linked.
      * @param obj the Scriptable object that must contain the method.
      */
-    public void addScriptMethod(String name, Method method, Scriptable obj) {
+    private void addScriptMethod(String name, Method method, Scriptable obj) {
         FunctionObject scriptMethod = new FunctionObject(name,
                 method, obj);
         global.put(name, global, scriptMethod);
@@ -393,7 +397,7 @@ public class Buscript {
      *
      * @param obj The object whose methods should be added.
      */
-    public void addScriptMethods(Scriptable obj) {
+    private void addScriptMethods(Scriptable obj) {
         for (Method method : obj.getClass().getDeclaredMethods()) {
             if (!method.getName().equals("getClassName")) {
                 addScriptMethod(method.getName(), method, obj);
@@ -423,7 +427,7 @@ public class Buscript {
      * @return The value of the global variable which will follow the same guidelines as
      * {@link Scriptable#get(String, org.mozilla.javascript.Scriptable)}.
      */
-    public Object getScriptVariable(String name) {
+    private Object getScriptVariable(String name) {
         Context.enter();
         try {
             return getGlobalScope().get(name, getGlobalScope());
@@ -620,15 +624,15 @@ public class Buscript {
         }
         List<Map<String, Object>> playerScripts = delayedScripts.get(target);
         if (playerScripts == null) {
-            playerScripts = new ArrayList<Map<String, Object>>();
+            playerScripts = new ArrayList<>();
             delayedScripts.put(target, playerScripts);
         }
-        Map<String, Object> script = new HashMap<String, Object>(2);
+        Map<String, Object> script = new HashMap<>(2);
         script.put("time", System.currentTimeMillis() + delay);
         script.put("file", scriptFile.toString());
-        List<Map<String, Object>> replacements = new ArrayList<Map<String, Object>>(stringReplacers.size());
+        List<Map<String, Object>> replacements = new ArrayList<>(stringReplacers.size());
         for (StringReplacer r : stringReplacers) {
-            Map<String, Object> replacement = new HashMap<String, Object>(2);
+            Map<String, Object> replacement = new HashMap<>(2);
             String regex = r.getRegexString();
             if (regex != null) {
                 replacement.put("regex", regex);
@@ -644,12 +648,12 @@ public class Buscript {
             replacements.add(replacement);
         }
         script.put("replacements", replacements);
-        script.put("metaData", new HashMap<String, Object>(metaData));
+        script.put("metaData", new HashMap<>(metaData));
         playerScripts.add(script);
         saveData();
     }
 
-    void runScript(String script, String source, Player executor) {
+    private void runScript(String script, String source, Player executor) {
         setup();
         Context cx = Context.enter();
         try {
@@ -666,7 +670,7 @@ public class Buscript {
         }
     }
 
-    void runScript(File script, Player executor) {
+    private void runScript(File script, Player executor) {
         setup();
         Context cx = Context.enter();
         try {
@@ -693,7 +697,7 @@ public class Buscript {
     }
 
     private void setup() {
-        Context cx = Context.enter();
+        @SuppressWarnings("UnusedAssignment") Context cx = Context.enter();
         try {
             if (delayedReplacements != null) {
                 for (Map<String, Object> replacement : delayedReplacements) {
@@ -744,6 +748,7 @@ public class Buscript {
      */
     public void registerEventScript(String eventClassName, String priorityString, File scriptFile) {
         EventPriority priority = EventPriority.valueOf(priorityString.toUpperCase());
+        //noinspection ConstantConditions
         if (priority == null) {
             getPlugin().getLogger().warning(priorityString + " is not a valid EventPriority!");
             return;
@@ -761,6 +766,7 @@ public class Buscript {
         }
         Method method;
         try {
+            //noinspection unchecked
             method = eventClass.getDeclaredMethod("getHandlerList");
         } catch (NoSuchMethodException ignore) {
             getPlugin().getLogger().warning(eventClass.getName() + " cannot be listened for!");
@@ -770,7 +776,7 @@ public class Buscript {
             getPlugin().getLogger().warning(eventClass.getName() + " cannot be listened for!");
             return;
         }
-        HandlerList handlerList = null;
+        @SuppressWarnings("UnusedAssignment") HandlerList handlerList = null;
         try {
             method.setAccessible(true);
             Object handlerListObj = method.invoke(null);
@@ -779,10 +785,7 @@ public class Buscript {
                 return;
             }
             handlerList = (HandlerList) handlerListObj;
-        } catch (IllegalAccessException ignore) {
-            getPlugin().getLogger().warning(eventClass.getName() + " cannot be listened for!");
-            return;
-        } catch (InvocationTargetException ignore) {
+        } catch (IllegalAccessException | InvocationTargetException ignore) {
             getPlugin().getLogger().warning(eventClass.getName() + " cannot be listened for!");
             return;
         }
@@ -792,10 +795,11 @@ public class Buscript {
         handlerList.register(registeredListener);
     }
 
-    void cacheScript(String fileName) {
+    private void cacheScript(String fileName) {
         File file = new File(fileName);
         if (!file.exists()) {
             try {
+                //noinspection ResultOfMethodCallIgnored
                 file.createNewFile();
             } catch (IOException e) {
                 getPlugin().getLogger().warning(e.getMessage());

@@ -21,12 +21,7 @@ public class BuscriptPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         buscript = new Buscript(this);
-        getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
-            @Override
-            public void run() {
-                getAPI().executeScript(getStartupScript());
-            }
-        });
+        getServer().getScheduler().scheduleSyncDelayedTask(this, () -> getAPI().executeScript(getStartupScript()));
     }
 
     /**
@@ -34,7 +29,7 @@ public class BuscriptPlugin extends JavaPlugin {
      *
      * @return The buscript library API.
      */
-    public Buscript getAPI() {
+    private Buscript getAPI() {
         return buscript;
     }
 
@@ -73,6 +68,7 @@ public class BuscriptPlugin extends JavaPlugin {
             try {
                 this.saveResource("startup-script.txt", false);
                 if (!scriptFile.exists()) {
+                    //noinspection ResultOfMethodCallIgnored
                     scriptFile.createNewFile();
                 }
             } catch (IOException e) {

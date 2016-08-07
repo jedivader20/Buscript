@@ -7,8 +7,8 @@ import org.bukkit.plugin.EventExecutor;
 
 class DefaultEventExecutor implements EventExecutor {
 
-    Buscript buscript;
-    String scriptFile;
+    private final Buscript buscript;
+    private final String scriptFile;
 
     DefaultEventExecutor(Buscript buscript, String scriptFile) {
         this.buscript = buscript;

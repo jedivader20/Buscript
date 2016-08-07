@@ -5,15 +5,14 @@ package buscript;
 
 import buscript.util.TimeTools;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
-import org.bukkit.event.EventPriority;
 import org.mozilla.javascript.ScriptableObject;
 
 import java.io.File;
 
+@SuppressWarnings("unused")
 class DefaultFunctions extends ScriptableObject {
 
-    private Buscript buscript;
+    private final Buscript buscript;
 
     DefaultFunctions(Buscript buscript) {
         this.buscript = buscript;
