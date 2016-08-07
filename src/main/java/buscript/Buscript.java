@@ -55,14 +55,14 @@ public class Buscript {
 
     private List<Map<String, Object>> delayedReplacements = null;
 
-    private final List<StringReplacer> stringReplacers = new ArrayList<>();
+    public final List<StringReplacer> stringReplacers = new ArrayList<>();
 
     private Map<String, Object> metaData = new HashMap<>();
 
     boolean runTasks = true;
     final Map<String, List<Map<String, Object>>> delayedScripts = new HashMap<>();
 
-    private static class TargetReplacer implements StringReplacer {
+    public static class TargetReplacer implements StringReplacer {
 
         private final Buscript buscript;
 
