@@ -3,6 +3,7 @@ package buscript;
 /**
  * Represents a regex string, usually something simple like "%t" to be replaced by another string.
  */
+@SuppressWarnings({"WeakerAccess", "SameReturnValue"})
 public interface StringReplacer {
 
     /**

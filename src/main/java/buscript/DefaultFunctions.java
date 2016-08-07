@@ -9,7 +9,7 @@ import org.mozilla.javascript.ScriptableObject;
 
 import java.io.File;
 
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "deprecation"})
 class DefaultFunctions extends ScriptableObject {
 
     private final Buscript buscript;

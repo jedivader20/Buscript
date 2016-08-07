@@ -37,13 +37,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-@SuppressWarnings("unused")
+@SuppressWarnings({"WeakerAccess", "CanBeFinal", "unused", "ResultOfMethodCallIgnored", "UnusedAssignment"})
 public class Buscript {
 
-    private static final String NULL = "!!NULL";
+    public static final String NULL = "!!NULL";
 
     private String target = null;
-    private final Plugin plugin;
+    private Plugin plugin;
     private Scriptable global;
     private Permission permissions;
     private Economy economy;
@@ -51,20 +51,21 @@ public class Buscript {
     private File scriptFolder;
     private File scriptFile;
     private FileConfiguration scriptConfig;
-    private final Map<String, String> scriptCache = new HashMap<>();
+    private Map<String, String> scriptCache = new HashMap<>();
 
     private List<Map<String, Object>> delayedReplacements = null;
 
-    public final List<StringReplacer> stringReplacers = new ArrayList<>();
+    private final List<StringReplacer> stringReplacers = new ArrayList<>();
 
     private Map<String, Object> metaData = new HashMap<>();
 
     boolean runTasks = true;
-    final Map<String, List<Map<String, Object>>> delayedScripts = new HashMap<>();
+    Map<String, List<Map<String, Object>>> delayedScripts = new HashMap<>();
 
-    public static class TargetReplacer implements StringReplacer {
+    @SuppressWarnings({"CanBeFinal", "unused"})
+    private static class TargetReplacer implements StringReplacer {
 
-        private final Buscript buscript;
+        private Buscript buscript;
 
         private TargetReplacer(Buscript buscript) {
             this.buscript = buscript;
@@ -106,13 +107,12 @@ public class Buscript {
      * @param plugin The plugin implementing this library.
      * @param pluginScriptName The name of the variable the plugin will be referenced as in scripts.
      */
-    private Buscript(Plugin plugin, @SuppressWarnings("SameParameterValue") String pluginScriptName) {
+    public Buscript(Plugin plugin, @SuppressWarnings("SameParameterValue") String pluginScriptName) {
         this.plugin = plugin;
         registerStringReplacer(new TargetReplacer(this));
         // Create script folder in plugin's directory.
         scriptFolder = new File(plugin.getDataFolder(), "scripts");
         if (!getScriptFolder().exists()) {
-            //noinspection ResultOfMethodCallIgnored
             getScriptFolder().mkdirs();
         }
         // Initialize the context with a global object.
@@ -275,7 +275,7 @@ public class Buscript {
      *
      * @return The current script target or null.
      */
-    private String getTarget() {
+    public String getTarget() {
         return target;
     }
 
@@ -348,7 +348,7 @@ public class Buscript {
      *
      * @param replacer the new StringReplacer to add.
      */
-    private void registerStringReplacer(StringReplacer replacer) {
+    public void registerStringReplacer(StringReplacer replacer) {
         Iterator<StringReplacer> it = stringReplacers.iterator();
         while (it.hasNext()) {
             StringReplacer r = it.next();
@@ -368,7 +368,7 @@ public class Buscript {
      * @param method the java method to be linked.
      * @param obj the Scriptable object that must contain the method.
      */
-    private void addScriptMethod(String name, Method method, Scriptable obj) {
+    public void addScriptMethod(String name, Method method, Scriptable obj) {
         FunctionObject scriptMethod = new FunctionObject(name,
                 method, obj);
         global.put(name, global, scriptMethod);
@@ -397,7 +397,7 @@ public class Buscript {
      *
      * @param obj The object whose methods should be added.
      */
-    private void addScriptMethods(Scriptable obj) {
+    public void addScriptMethods(Scriptable obj) {
         for (Method method : obj.getClass().getDeclaredMethods()) {
             if (!method.getName().equals("getClassName")) {
                 addScriptMethod(method.getName(), method, obj);
@@ -427,7 +427,7 @@ public class Buscript {
      * @return The value of the global variable which will follow the same guidelines as
      * {@link Scriptable#get(String, org.mozilla.javascript.Scriptable)}.
      */
-    private Object getScriptVariable(String name) {
+    public Object getScriptVariable(String name) {
         Context.enter();
         try {
             return getGlobalScope().get(name, getGlobalScope());
@@ -653,7 +653,7 @@ public class Buscript {
         saveData();
     }
 
-    private void runScript(String script, String source, Player executor) {
+    void runScript(String script, String source, Player executor) {
         setup();
         Context cx = Context.enter();
         try {
@@ -670,7 +670,7 @@ public class Buscript {
         }
     }
 
-    private void runScript(File script, Player executor) {
+    void runScript(File script, Player executor) {
         setup();
         Context cx = Context.enter();
         try {
@@ -697,7 +697,7 @@ public class Buscript {
     }
 
     private void setup() {
-        @SuppressWarnings("UnusedAssignment") Context cx = Context.enter();
+        Context cx = Context.enter();
         try {
             if (delayedReplacements != null) {
                 for (Map<String, Object> replacement : delayedReplacements) {
@@ -776,7 +776,7 @@ public class Buscript {
             getPlugin().getLogger().warning(eventClass.getName() + " cannot be listened for!");
             return;
         }
-        @SuppressWarnings("UnusedAssignment") HandlerList handlerList = null;
+        HandlerList handlerList = null;
         try {
             method.setAccessible(true);
             Object handlerListObj = method.invoke(null);
@@ -795,11 +795,10 @@ public class Buscript {
         handlerList.register(registeredListener);
     }
 
-    private void cacheScript(String fileName) {
+    void cacheScript(String fileName) {
         File file = new File(fileName);
         if (!file.exists()) {
             try {
-                //noinspection ResultOfMethodCallIgnored
                 file.createNewFile();
             } catch (IOException e) {
                 getPlugin().getLogger().warning(e.getMessage());

@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.logging.Logger;
 
+@SuppressWarnings("UnusedAssignment")
 public class FileTools {
 
     public static String readFileAsString(File file, Logger log) {

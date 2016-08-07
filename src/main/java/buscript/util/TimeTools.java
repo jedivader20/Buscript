@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 package buscript.util;
 
+@SuppressWarnings("unused")
 public class TimeTools {
 
     public static String toShortForm(long second) {
